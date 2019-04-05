@@ -11,38 +11,35 @@ def bi_directional_search(graph, start, goal):
     if start == goal:
         return [start]
 
-    search_path = {start: [start], goal: [goal]}
+    paths_queue = { goal: [goal], start: [start]}
     visited_vertices = set()
 
-    while len(search_path) > 0:
-        unvisited_vertices = list(search_path.keys())
+    while len(paths_queue) > 0:
+        known_vertices = list(paths_queue.keys())
 
-        for vertex in unvisited_vertices:
+        for vertex in known_vertices:
 
-            current_path = search_path[vertex]
+            current_path = paths_queue[vertex]
             origin_vertex = current_path[0]
             current_neighbours = set(graph[vertex]) - visited_vertices
-            unvisited_neighbours = current_neighbours.intersection(unvisited_vertices) 
+            new_neighbours = current_neighbours - set(known_vertices)
+            meeting_neighbours = current_neighbours.intersection(known_vertices) 
 
             # Check if our neighbours hit an active vertex
-            if len(unvisited_neighbours) > 0:
-                for meeting_vertex in unvisited_neighbours:
-                    if origin_vertex != search_path[meeting_vertex][0]:
-                        search_path[meeting_vertex].reverse()
-                        return search_path[vertex] + search_path[meeting_vertex]
+            if len(meeting_neighbours) > 0:
+                for meeting_vertex in meeting_neighbours:
+                    if origin_vertex != paths_queue[meeting_vertex][0]:
+                        paths_queue[meeting_vertex].reverse()
+                        return paths_queue[vertex] + paths_queue[meeting_vertex]
 
             # No hits, so check for new neighbours to extend our paths.
-            if len(set(current_neighbours) - visited_vertices - set(unvisited_vertices))  == 0:
-                search_path.pop(vertex, None)
-                visited_vertices.add(vertex)
-            else:
-                # Otherwise extend the paths, remove the previous one and update the inactive vertices.
-                for neighbour_vertex in current_neighbours - visited_vertices - set(unvisited_vertices):
-                    search_path[neighbour_vertex] = current_path + [neighbour_vertex]
-                    unvisited_vertices.append(neighbour_vertex)
-                search_path.pop(vertex, None)
-                visited_vertices.add(vertex)
+            if len(new_neighbours) >= 0:
+                for neighbour_vertex in new_neighbours:
+                    paths_queue[neighbour_vertex] = current_path + [neighbour_vertex]
+                    known_vertices.append(neighbour_vertex)
+            paths_queue.pop(vertex, None)
+            visited_vertices.add(vertex)
 
     return None
 
-print (bi_directional_search(example_graph,16,0))
+print (bi_directional_search(example_graph,0,16))
